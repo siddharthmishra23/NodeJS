@@ -480,6 +480,171 @@ const i = x => { v: x, w: x };            // Bad: Syntax Error
 // Arrow function does not have a prototype which means irt cannot be used as constructor
 
 
+function max(first=-Infinity, ...rest) {
+    let maxValue = first; // Start by assuming the first arg is biggest
+    // Then loop through the rest of the arguments, looking for bigger
+    for(let n of rest) {
+        if (n > maxValue) {
+            maxValue = n;
+        }
+    }
+    // Return the biggest
+    return maxValue;
+}
+
+max(1, 10, 100, 2, 3, 1000, 4, 5, 6)  // => 1000
+
+// Multiply the vector {x,y} by a scalar value
+function vectorMultiply({x, y}, scalar) {
+    return { x: x*scalar, y: y*scalar };
+}
+vectorMultiply({x: 1, y: 2}, 2)  // => {x: 2, y: 4}
+
+function vectorAdd(
+    {x: x1, y: y1}, // Unpack 1st object into x1 and y1 params
+    {x: x2, y: y2}  // Unpack 2nd object into x2 and y2 params
+)
+{
+    return { x: x1 + x2, y: y1 + y2 };
+}
+vectorAdd({x: 1, y: 2}, {x: 3, y: 4})  // => {x: 4, y: 6}
+
+// Multiply the vector {x,y} or {x,y,z} by a scalar value
+function vectorMultiply({x, y, z=0}, scalar) {
+    return { x: x*scalar, y: y*scalar, z: z*scalar };
+}
+vectorMultiply({x: 1, y: 2}, 2)  // => {x: 2, y: 4, z: 0}
+
+// Multiply the vector {x,y} or {x,y,z} by a scalar value, retain other props
+function vectorMultiply({x, y, z=0, ...props}, scalar) {
+    return { x: x*scalar, y: y*scalar, z: z*scalar, ...props };
+}
+vectorMultiply({x: 1, y: 2, w: -1}, 2)  // => {x: 2, y: 4, z: 0, w: -1}
+
+// Initialize the counter property of the function object.
+// Function declarations are hoisted so we really can
+// do this assignment before the function declaration.
+uniqueInteger.counter = 0;
+
+// This function returns a different integer each time it is called.
+// It uses a property of itself to remember the next value to be returned.
+function uniqueInteger() {
+    return uniqueInteger.counter++;  // Return and increment counter property
+}
+uniqueInteger()  // => 0
+uniqueInteger()  // => 1
+
+// Remember the fundamental rule of lexical scoping: JavaScript functions are executed using the scope they were defined in.
+// This means that functions are executed using the variable scope that was in effect when they were defined, not the variable scope that is in effect when they are invoked.
+// in order to implement lexical scoping, the internal state of a JavaScript function object must 
+// include not only the code of the function but also a reference to the scope in which the function definition appears. 
+// This combination of a function object and a scope (a set of variable bindings) in which the function’s variables are resolved is called a closure in the computer science literature.
+
+
+function counter() {
+    let n = 0;
+    return {
+        count: function() { return n++; },
+        reset: function() { n = 0; }
+    };
+}
+
+let c = counter(), d = counter();   // Create two counters
+c.count()                           // => 0
+d.count()                           // => 0: they count independently
+c.reset();                          // reset() and count() methods share state
+c.count()                           // => 0: because we reset c
+d.count()                           // => 1: d was not reset
+
+
+// call() and apply() allow you to indirectly invoke (§8.2.4) a function as if it were a method of some other object. 
+// The first argument to both call() and apply() is the object on which the function is to be invoked; 
+
+function f(y) { return this.x + y; } // This function needs to be bound
+let o = { x: 1 };                    // An object we'll bind to
+let g = f.bind(o);                   // Calling g(x) invokes f() on o
+g(2)                                 // => 3
+let p = { x: 10, g };                // Invoke g() as a method of this object
+p.g(2)                               // => 3: g is still bound to o, not p.
+
+let sum = (x,y) => x + y;      // Return the sum of 2 args
+let succ = sum.bind(null, 1);  // Bind the first argument to 1
+succ(2)  // => 3: x is bound to 1, and we pass 2 for the y argument
+
+function f(y,z) { return this.x + y + z; }
+let g = f.bind({x: 1}, 2);     // Bind this and y
+g(3)     // => 6: this.x is bound to 1, y is bound to 2 and z is 3
+
+// const f = new Function("x", "y", "return x*y;"); ======== const f = function(x, y) { return x*y; };
+// The Function() constructor expects any number of string arguments. The last argument is the text of the function body;
+
+// This higher-order function returns a new function that passes its
+// arguments to f and returns the logical negation of f's return value;
+function not(f) {
+    return function(...args) {             // Return a new function
+        let result = f.apply(this, args);  // that calls f
+        return !result;                    // and negates its result.
+    };
+}
+
+const even = x => x % 2 === 0; // A function to determine if a number is even
+const odd = not(even);         // A new function that does the opposite
+[1,1,3,5,5].every(odd)         // => true: every element of the array is odd
+
+r instanceof Range   // => true: r inherits from Range.prototype
+
+function Strange() {}
+Strange.prototype = Range.prototype;
+new Strange() instanceof Range   // => true
+
+let F = function() {}; // This is a function object.
+let p = F.prototype;   // This is the prototype object associated with F.
+let c = p.constructor; // This is the function associated with the prototype.
+c === F                // => true: F.prototype.constructor === F for any F
+
+
+
+class Range {
+    constructor(from, to) {
+        // Store the start and end points (state) of this new range object.
+        // These are noninherited properties that are unique to this object.
+        this.from = from;
+        this.to = to;
+    }
+
+    // Return true if x is in the range, false otherwise
+    // This method works for textual and Date ranges as well as numeric.
+    includes(x) { return this.from <= x && x <= this.to; }
+
+    // A generator function that makes instances of the class iterable.
+    // Note that it only works for numeric ranges.
+    *[Symbol.iterator]() {
+        for(let x = Math.ceil(this.from); x <= this.to; x++) yield x;
+    }
+
+    // Return a string representation of the range
+    toString() { return `(${this.from}...${this.to})`; }
+}
+
+// Here are example uses of this new Range class
+let r = new Range(1,3);   // Create a Range object
+r.includes(2)             // => true: 2 is in the range
+r.toString()              // => "(1...3)"
+[...r]                    // => [1, 2, 3]; convert to an array via iterator
+
+
+let Square = class { constructor(x) { this.area = x * x; } };
+new Square(3).area  // => 9
+
+
+
+
+
+
+
+
+
+
 
 
 
