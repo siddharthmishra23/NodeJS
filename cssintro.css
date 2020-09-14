@@ -1,0 +1,176 @@
+<!doctype html>
+<head>
+  <link href="styles.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+  <header class="page-header">
+    <h1 id="page-title" class="title">Wombat Coffee Roasters</h1>      1
+    <nav>
+      <ul id="main-nav" class="nav">                                   2
+        <li><a href="/">Home</a></li>
+        <li><a href="/coffees">Coffees</a></li>
+        <li><a href="/brewers">Brewers</a></li>
+        <li><a href="/specials" class="featured">Specials</a></li>     3
+      </ul>
+    </nav>
+  </header>
+</body>
+
+
+h1 {                            1
+    font-family: serif;
+  }
+  
+  #page-title {                   2
+    font-family: sans-serif;
+  }
+  
+  .title {                        3
+    font-family: monospace;
+  }
+
+
+  1 Tag (or type) selector
+  2 ID selector
+  3 Class selector
+
+
+  //  which has an ID selector, wins; the title will have a sans-serif font
+
+  Let’s unpack the cascade. When declarations conflict, the cascade considers three things to resolve the difference:
+
+    Stylesheet origin—Where the styles come from. Your styles are applied in conjunction with the browser’s default styles.
+    Selector specificity—Which selectors take precedence over which.
+    Source order—Order in which styles are declared in the stylesheet.
+
+    Declarations marked !important are treated as a higher-priority origin, so the overall order of preference, in decreasing order, is this:
+
+    Author important
+    Author
+    User agent
+
+
+    The browser evaluates specificity in two parts: styles applied inline in the HTML and styles applied using a selector.
+
+
+
+    <li>
+  <a href="/specials" class="featured"
+    style="background-color: orange;">            1
+    Specials
+  </a>
+</li>
+
+1 Inline style applied via the style attribute
+To override inline declarations in your stylesheet, you’ll need to add an !important to the declaration, shifting it into a higher-priority origin. 
+If the inline styles are marked important, then nothing can override them. 
+
+a selector with two class names has a higher specificity than a selector with only one.
+
+
+#main-nav a {                       1
+    color: white;
+    background-color: #13a4a4;        2
+    padding: 5px;
+    border-radius: 2px;
+    text-decoration: none;
+  }
+  
+  .featured {                         3
+    background-color: orange;
+  }
+
+
+  1 Higher specificity selector
+  2 Teal background color
+  3 The orange background declaration won’t override the teal due to selector specificity.
+
+
+  The exact rules of specificity are:
+
+    If a selector has more IDs, it wins (that is, it’s more specific).
+    If that results in a tie, the selector with the most classes wins.
+    If that results in a tie, the selector with the most tag names wins.
+
+    html body header h1 {                 1
+        color: blue;
+      }
+      
+      body header.page-header h1 {          2
+        color: orange;
+      }
+      
+      .page-header .title {                 3
+        color: green;
+      }
+      
+      #page-title {                         4
+        color: red;
+      }
+
+    1 Four tags
+    2 Three tags and one class
+    3 Two classes
+    4 One ID
+
+The most specific selector here is 4, with one ID, so its color declaration of red is applied to the title. 
+The next specific is 3, with two class names. This would be applied if the ID selector 4 were absent. 
+Selector 3 has a higher specificity than selector 2, despite its length: two classes are more specific than one class. 
+Finally, 1 is the least specific, with four element types (that is, tag names) but no IDs or classes. 
+“1,2,2” indicates a specificity of one ID, two classes, and two tags. IDs having the highest priority are listed first, followed by classes, then tags. 
+
+a:link {
+    color: blue;
+    text-decoration: none;
+  }
+  
+  a:visited {
+    color: purple;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+  
+  a:active {
+    color: red;
+  }
+
+  LoVe/HAte—link, visited, hover, active. 
+
+
+  Don’t use IDs in your selector. Even one ID ratchets up the specificity a lot. When you need to override the selector, you often don’t have another meaningful ID you can use, 
+  so you wind up having to copy the original selector and add another class to distinguish it from the one you are trying to override.
+  Don’t use !important. This is even more difficult to override than an ID, and once you use it, 
+  you’ll need to add it every time you want to override the original declaration—and then you still have to deal with the specificity.
+
+
+  a:link {                             1
+    color: blue;                       1
+  }                                    1
+  ...
+  .footer {
+    color: #666;                       2
+    background-color: #ccc;
+    padding: 15px 0;
+    text-align: center;
+    font-size: 14px;
+  }
+  
+  .footer a {
+    color: inherit;                    3
+    text-decoration: underline;
+  }
+
+  1 Global link color for the page
+  2 Footer text color set to gray
+  3 Inherits font color from the footer
+
+  .footer a {
+    color: initial;
+    text-decoration: underline;
+  }
+  takes the default value of that property
+
+
+  
