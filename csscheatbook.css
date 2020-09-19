@@ -1,0 +1,41 @@
+<h2 pam>Come join us!</h2>    
+
+[pam]{
+    color : brown   attribute  selector
+  }]
+
+
+  element selector
+  class selector class="name" .name{}
+  universal selector *{}
+  IDs selecor id="name" #name{}
+
+  Specifity
+
+  1. inline style
+  2. #ID selector
+  3. .class :pseudo-class and [attribute]
+  4. tag ::psedo-element
+
+  Combinators
+
+  Adjacent sibling =====> 
+  h2 + p{
+      color :red; // colours red to all the p tag which comes directly under h2, it must share the asme parent
+
+  }
+
+  General sibling ====> 
+  h2 ~ p {
+      color : red; // colours  all p tag if there is a sibling h2, second element comes after first element
+  }
+
+  Child sibling======>
+  div > p {
+      color : red; // any paragraph whihc is direclty under div not nested ones
+  }
+
+  descendant sibling=====>
+  div p {
+      color : red; // all the p tag under div no matter where they are if there is a adiv o ntop
+  }
