@@ -42,3 +42,23 @@
 
   url() is used to add background
   
+
+  POSITION
+
+
+  POsition  : fixed ====> takes viewport 
+
+
+  FLEX:
+  ============> Parent ==> flex-flow, justify-content, align-content , align-items ==>default flex-direction : row , flex-wrap : nowrap
+  flex-flow : row wrap === flex-direction: row + flex-wrap: wrap 
+  align-items: aligns along cross axis
+  justify-content : center goes with main axis
+  align-content : aligns with cross axis
+  ============>Child ==> order , flex , align-self
+  order : -1 // puts the element at the start
+  align-self : goes along cross axis
+  flex-grow : 1 // grows in size
+  flex-shrink : 1  (default) // reduces size to the content // if 0 then no shrink
+  flex-basis: // defines the size of the element depenign upon the main axis // if auto then it takes the width and height value
+
