@@ -667,7 +667,7 @@ A set is a collection of values, like an array is. Unlike arrays, however, sets 
 
 let s = new Set();       // A new, empty set
 let t = new Set([1, s]); // A new set with two members
-The argument to the Set() constructor need not be an array: any iterable object (including other Set objects) is allowed:
+// The argument to the Set() constructor need not be an array: any iterable object (including other Set objects) is allowed:
 
 let s = new Set();  // Start empty
 s.size              // => 0
@@ -687,6 +687,187 @@ s.delete([1,2,3])   // => false: the array in the set is different
 s.size              // => 1: there is still that one array in the set
 s.clear();          // Remove everything from the set
 s.size              // => 0
+
+let oneDigitPrimes = new Set([2,3,5,7]);
+oneDigitPrimes.has(2)    // => true: 2 is a one-digit prime number
+oneDigitPrimes.has(3)    // => true: so is 3
+oneDigitPrimes.has(4)    // => false: 4 is not a prime
+oneDigitPrimes.has("5")  // => false: "5" is not even a number
+
+// The Set class is iterable, which means that you can use a for/of loop to enumerate all of the elements of a set:
+// Because Set objects are iterable, you can convert them to arrays and argument lists with the ... spread operator:
+// JavaScript Set class always remembers the order that elements were inserted in,
+// the Set class also implements a forEach() method
+
+
+let m = new Map();  // Create a new, empty map
+let n = new Map([   // A new map initialized with string keys mapped to numbers
+    ["one", 1],
+    ["two", 2]
+]);
+// The optional argument to the Map() constructor should be an iterable object that yields two element [key, value] arrays. 
+// In practice, this means that if you want to initialize a map when you create it, 
+// you’ll typically write out the desired keys and associated values as an array of arrays.
+
+let copy = new Map(n); // A new map with the same keys and values as map n
+let o = { x: 1, y: 2}; // An object with two properties
+let p = new Map(Object.entries(o)); // Same as new map([["x", 1], ["y", 2]])
+
+let m = new Map();   // Start with an empty map
+m.size               // => 0: empty maps have no keys
+m.set("one", 1);     // Map the key "one" to the value 1
+m.set("two", 2);     // And the key "two" to the value 2.
+m.size               // => 2: the map now has two keys
+m.get("two")         // => 2: return the value associated with key "two"
+m.get("three")       // => undefined: this key is not in the set
+m.set("one", true);  // Change the value associated with an existing key
+m.size               // => 2: the size doesn't change
+m.has("one")         // => true: the map has a key "one"
+m.has(true)          // => false: the map does not have a key true
+m.delete("one")      // => true: the key existed and deletion succeeded
+m.size               // => 1
+m.delete("three")    // => false: failed to delete a nonexistent key
+m.clear();           // Remove all keys and values from the map
+
+let m = new Map([["x", 1], ["y", 2]]);
+[...m]    // => [["x", 1], ["y", 2]]
+
+for(let [key, value] of m) {
+    // On the first iteration, key will be "x" and value will be 1
+    // On the second iteration, key will be "y" and value will be 2
+}
+
+[...m.keys()]     // => ["x", "y"]: just the keys
+[...m.values()]   // => [1, 2]: just the values
+[...m.entries()]  // => [["x", 1], ["y", 2]]: same as [...m]
+
+m.forEach((value, key) => {  // note value, key NOT key, value
+    // On the first invocation, value will be 1 and key will be "x"
+    // On the second invocation, value will be 2 and key will be "y"
+});
+
+let pattern = /s$/;  =======   let pattern = new RegExp("s$");
+// The second, “$”, is a special meta-character that matches the end of a string.
+// Flags are specified following the second slash character in RegExp literals, or as a second string argument to the RegExp() constructor. 
+let pattern = /s$/i; //we want case-insensitive matching:
+
+// All alphabetic characters and digits match themselves literally in regular expressions. JavaScript regular expression syntax also supports certain nonalphabetic characters through escape sequences that begin with a backslash (\).
+
+// A character class matches any one character that is contained within it. Thus, the regular expression /[abc]/ matches any one of the letters a, b, or c. Negated character classes can also be defined; these match any character except those contained within the brackets. A negated character class is specified by placing a caret (^) as the first character inside the left bracket. The RegExp /[^abc]/ matches any one character other than a, b, or c. Character classes can use a hyphen to indicate a range of characters. To match any one lowercase character from the Latin alphabet, use /[a-z]/, and to match any letter or digit from the Latin alphabet, use /[a-zA-Z0-9]/. (And if you want to include an actual hyphen in your character class, simply make it the last character before the right bracket.)
+
+[...]   Any one character between the brackets.
+
+[^...]  Any one character not between the brackets.
+
+.   Any character except newline or another Unicode line terminator. Or, if the RegExp uses the s flag, then a period matches any character, including line terminators.
+
+\w  Any ASCII word character. Equivalent to [a-zA-Z0-9_].
+
+\W  Any character that is not an ASCII word character. Equivalent to [^a-zA-Z0-9_].
+
+\s  Any Unicode whitespace character.
+
+\S  Any character that is not Unicode whitespace.
+
+\d  Any ASCII digit. Equivalent to [0-9].
+
+\D  Any character other than an ASCII digit. Equivalent to [^0-9].
+
+[\b] A literal backspace (special case).
+
+
+// The characters that specify repetition always follow the pattern to which they are being applied.
+
+
+{n,m}   Match the previous item at least n times but no more than m times.
+
+{n,}    Match the previous item n or more times.
+
+{n} Match exactly n occurrences of the previous item.
+
+?   Match zero or one occurrences of the previous item. That is, the previous item is optional. Equivalent to {0,1}.
+
++   Match one or more occurrences of the previous item. Equivalent to {1,}.
+
+*   Match zero or more occurrences of the previous item. Equivalent to {0,}.
+
+let r = /\d{2,4}/; // Match between two and four digits
+r = /\w{3}\d?/;    // Match exactly three word characters and an optional digit
+r = /\s+java\s+/;  // Match "java" with one or more spaces before and after
+r = /[^(]*/;       // Match zero or more characters that are not open parens
+
+// The | character separates alternatives. For example, /ab|cd|ef/ matches the string “ab” or the string “cd” or the string “ef”. And /\d{3}|[a-z]{4}/ matches either three digits or four lowercase letters.
+
+// If you want to specify a date and time in UTC (Universal Coordinated Time, aka GMT), then you can use the Date.UTC().
+let century = new Date(Date.UTC(2100, 0, 1));
+let century = new Date(2100,         // Year 2100
+    0,            // January
+    1,            // 1st
+    2, 3, 4, 5);  // 02:03:04.005, local time
+    let now = new Date();     // The current time
+
+
+    let epoch = new Date(0);  // Midnight, January 1st, 1970, GMT
+
+    d.setTime(d.getTime() + 30000);
+
+
+    let startTime = Date.now();
+reticulateSplines(); // Do some time-consuming operation
+let endTime = Date.now();
+console.log(`Spline reticulation took ${endTime - startTime}ms.`);
+
+The static Date.now() method returns the current time as a timestamp and is helpful when you want to measure how long your code takes to run:
+
+Finally, if you pass a string to the Date() constructor, it will attempt to parse that string as a date and time specification. The constructor can parse dates specified in the formats produced by the toString(), toUTCString(), and toISOString() methods:
+
+
+let d = new Date(2020, 0, 1, 17, 10, 30); // 5:10:30pm on New Year's Day 2020
+d.toString()  // => "Wed Jan 01 2020 17:10:30 GMT-0800 (Pacific Standard Time)"
+d.toUTCString()         // => "Thu, 02 Jan 2020 01:10:30 GMT"
+d.toLocaleDateString()  // => "1/1/2020": 'en-US' locale
+d.toLocaleTimeString()  // => "5:10:30 PM": 'en-US' locale
+d.toISOString()         // => "2020-01-02T01:10:30.000Z"
+
+This is a full list of the string formatting methods of the Date class:
+
+toString()
+
+    This method uses the local time zone but does not format the date and time in a locale-aware way.
+toUTCString()
+
+    This method uses the UTC time zone but does not format the date in a locale-aware way.
+toISOString()
+
+    This method prints the date and time in the standard year-month-day hours:minutes:seconds.ms format of the ISO-8601 standard. The letter “T” separates the date portion of the output from the time portion of the output. The time is expressed in UTC, and this is indicated with the letter “Z” as the last letter of the output.
+toLocaleString()
+
+    This method uses the local time zone and a format that is appropriate for the user’s locale.
+toDateString()
+
+    This method formats only the date portion of the Date and omits the time. It uses the local time zone and does not do locale-appropriate formatting.
+toLocaleDateString()
+
+    This method formats only the date. It uses the local time zone and a locale-appropriate date format.
+toTimeString()
+
+    This method formats only the time and omits the date. It uses the local time zone but does not format the time in a locale-aware way.
+toLocaleTimeString()
+
+    This method formats the time in a locale-aware way and uses the local time zone.
+
+
+
+    let o = {s: "", n: 0, a: [true, false, null]};
+    let s = JSON.stringify(o);  // s == '{"s":"","n":0,"a":[true,false,null]}'
+    let copy = JSON.parse(s);   // copy == {s: "", n: 0, a: [true, false, null]}
+
+
+    
+
+
+    
+
 
 
 
