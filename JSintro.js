@@ -107,6 +107,11 @@ Conditional Property Access
 expression ?. identifier
 expression ?.[ expression ]
 
+let a = { b: null };
+a.b?.c.d   // => undefined
+
+// This is because property access with ?. is “short-circuiting”: if the subexpression to the left of ?. evaluates to null or undefined, then the entire expression immediately evaluates to undefined without any further property access attempts.
+
 
 function square(x, log) { // The second argument is an optional function
     log?.(x);             // Call the function if there is one
@@ -861,6 +866,177 @@ toLocaleTimeString()
     let o = {s: "", n: 0, a: [true, false, null]};
     let s = JSON.stringify(o);  // s == '{"s":"","n":0,"a":[true,false,null]}'
     let copy = JSON.parse(s);   // copy == {s: "", n: 0, a: [true, false, null]}
+
+
+    // Typically, you pass only a single argument to JSON.stringify() and JSON.parse(). Both functions accept an optional second argument that allows us to extend the JSON format, and these are described next. JSON.stringify() also takes an optional third argument that we’ll discuss first. If you would like your JSON-formatted string to be human-readable (if it is being used as a configuration file, for example), then you should pass null as the second argument and pass a number or string as the third argument. This third argument tells JSON.stringify() that it should format the data on multiple indented lines. If the third argument is a number, then it will use that number of spaces for each indentation level. If the third argument is a string of whitespace (such as '\t'), it will use that string for each level of indent.
+
+
+
+    let o = {s: "test", n: 0};
+JSON.stringify(o, null, 2)  // => '{\n  "s": "test",\n  "n": 0\n}'
+
+
+
+// If you need to re-create Date objects (or modify the parsed object in any other way), you can pass a “reviver” function as the second argument to JSON.parse(). If specified, this “reviver” function is invoked once for each primitive value (but not the objects or arrays that contain those primitive values) parsed from the input string. The function is invoked with two arguments. The first is a property name—either an object property name or an array index converted to a string. The second argument is the primitive value of that object property or array element. Furthermore, the function is invoked as a method of the object or array that contains the primitive value, so you can refer to that containing object with the this keyword.
+
+// The return value of the reviver function becomes the new value of the named property. If it returns its second argument, the property will remain unchanged. If it returns undefined, then the named property will be deleted from the object or array before JSON.parse() returns to the user.
+
+// As an example, here is a call to JSON.parse() that uses a reviver function to filter some properties and to re-create Date objects:
+
+
+let data = JSON.parse(text, function(key, value) {
+    // Remove any values whose property name begins with an underscore
+    if (key[0] === "_") return undefined;
+
+    // If the value is a string in ISO 8601 date format convert it to a Date.
+    if (typeof value === "string" &&
+        /^\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\dZ$/.test(value)) {
+        return new Date(value);
+    }
+
+    // Otherwise, return the value unchanged
+    return value;
+});
+
+
+//  Arrays (including TypedArrays) are iterable, as are strings and Set and Map objects. This means that the contents of these data structures can be iterated—looped over—with the for/of loop
+
+//  Iterators can be used with destructuring assignment:
+
+let purpleHaze = Uint8Array.of(255, 0, 255, 128);
+let [r, g, b, a] = purpleHaze; // a == 128
+
+let m = new Map([["one", 1], ["two", 2]]);
+for(let [k,v] of m) console.log(k, v); // Logs 'one 1' and 'two 2'
+[...m]            // => [["one", 1], ["two", 2]]: default iteration
+[...m.entries()]  // => [["one", 1], ["two", 2]]: entries() method is the same
+[...m.keys()]     // => ["one", "two"]: keys() method iterates just map keys
+[...m.values()]   // => [1, 2]: values() method iterates just map values
+
+// First, there are the iterable objects: these are types like Array, Set, and Map that can be iterated. Second, there is the iterator object itself, which performs the iteration. And third, there is the iteration result object that holds the result of each step of the iteration.
+
+// An iterable object is any object with a special iterator method that returns an iterator object. An iterator is any object with a next() method that returns an iteration result object. And an iteration result object is an object with properties named value and done. To iterate an iterable object, you first call its iterator method to get an iterator object. Then, you call the next() method of the iterator object repeatedly until the returned value has its done property set to true. The tricky thing about this is that the iterator method of an iterable object does not have a conventional name but uses the Symbol Symbol.iterator as its name. So a simple for/of loop over an iterable object iterable could also be written the hard way, like this:
+
+
+let iterable = [99];
+let iterator = iterable[Symbol.iterator]();
+for(let result = iterator.next(); !result.done; result = iterator.next()) {
+    console.log(result.value)  // result.value == 99
+}
+
+
+// A generator is a kind of iterator defined with powerful new ES6 syntax; it’s particularly useful when the values to be iterated are not the elements of a data structure, but the result of a computation.
+
+// When you invoke a generator function, it does not actually execute the function body, but instead returns a generator object. This generator object is an iterator. Calling its next() method causes the body of the generator function to run from the start (or whatever its current position is) until it reaches a yield statement. yield is new in ES6 and is something like a return statement. The value of the yield statement becomes the value returned by the next() call on the iterator. An example makes this clearer:
+
+// A generator function that yields the set of one digit (base-10) primes.
+function* oneDigitPrimes() { // Invoking this function does not run the code
+    yield 2;                 // but just returns a generator object. Calling
+    yield 3;                 // the next() method of that generator runs
+    yield 5;                 // the code until a yield statement provides
+    yield 7;                 // the return value for the next() method.
+}
+
+// When we invoke the generator function, we get a generator
+let primes = oneDigitPrimes();
+
+// A generator is an iterator object that iterates the yielded values
+primes.next().value          // => 2
+primes.next().value          // => 3
+primes.next().value          // => 5
+primes.next().value          // => 7
+primes.next().done           // => true
+
+// Generators have a Symbol.iterator method to make them iterable
+primes[Symbol.iterator]()    // => primes
+
+// We can use generators like other iterable types
+[...oneDigitPrimes()]        // => [2,3,5,7]
+let sum = 0;
+for(let prime of oneDigitPrimes()) sum += prime;
+sum                          // => 17
+
+
+function* add(){
+    yield 1
+    yield 2
+}
+let k = add()
+k.next().value      //1
+k.next().value     // 2
+
+const seq = function*(from,to) {
+    for(let i = from; i <= to; i++) yield i;
+};
+[...seq(3,5)]  // => [3, 4, 5]
+
+let o = {
+    x: 1, y: 2, z: 3,
+    // A generator that yields each of the keys of this object
+    *g() {
+        for(let key of Object.keys(this)) {
+            yield key;
+        }
+    }
+};
+[...o.g()] // => ["x", "y", "z", "g"]
+
+// Note that there is no way to write a generator function using arrow function syntax.
+
+function *oneAndDone() {
+    yield 1;
+    return "done";
+}
+
+// The return value does not appear in normal iteration.
+[...oneAndDone()]   // => [1]
+
+// But it is available if you explicitly call next()
+let generator = oneAndDone();
+generator.next()           // => { value: 1, done: false}
+generator.next()           // => { value: "done", done: true }
+// If the generator is already done, the return value is not returned again
+generator.next()           // => { value: undefined, done: true }
+
+
+
+
+
+
+function* smallNumbers() {
+    console.log("next() invoked the first time; argument discarded");
+    let y1 = yield 1;    // y1 == "b"
+    console.log("next() invoked a second time with argument", y1);
+    let y2 = yield y1;    // y2 == "c"
+    console.log("next() invoked a third time with argument", y2);
+    let y3 = yield 3;    // y3 == "d"
+    console.log("next() invoked a fourth time with argument", y3);
+    return 4;
+}
+// When the next() method of a generator is invoked, the generator function runs until it reaches a yield expression. The expression that follows the yield keyword is evaluated, and that value becomes the return value of the next() invocation. At this point, the generator function stops executing right in the middle of evaluating the yield expression. The next time the next() method of the generator is called, the argument passed to next() becomes the value of the yield expression that was paused. So the generator returns values to its caller with yield, and the caller passes values in to the generator with next(). The generator and caller are two separate streams of execution passing values (and control) back and forth. The following code illustrates:
+
+let g = smallNumbers();
+console.log("generator created; no code runs yet");
+let n1 = g.next("a");   // n1.value == 1
+console.log("generator yielded", n1.value);
+let n2 = g.next("sid");   // n2.value == 2
+console.log("generator yielded", n2.value);
+let n3 = g.next("c");   // n3.value == 3
+console.log("generator yielded", n3.value);
+let n4 = g.next("d");   // n4 == { value: 4, done: true }
+console.log("generator returned", n4.value);
+generator created; no code runs yet
+Script snippet %236:2 next() invoked the first time; argument discarded
+Script snippet %236:15 generator yielded 1
+Script snippet %236:4 next() invoked a second time with argument sid
+Script snippet %236:17 generator yielded sid
+Script snippet %236:6 next() invoked a third time with argument c
+Script snippet %236:19 generator yielded 3
+Script snippet %236:8 next() invoked a fourth time with argument d
+Script snippet %236:21 generator returned 4
+    
+
+// Note the asymmetry in this code. The first invocation of next() starts the generator, but the value passed to that invocation is not accessible to the generator.
 
 
     
