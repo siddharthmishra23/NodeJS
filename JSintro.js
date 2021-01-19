@@ -1038,11 +1038,708 @@ Script snippet %236:21 generator returned 4
 
 // Note the asymmetry in this code. The first invocation of next() starts the generator, but the value passed to that invocation is not accessible to the generator.
 
+Asynchronous
 
-    
+// Call checkForUpdates in one minute and then again every minute after that
+let updateIntervalId = setInterval(checkForUpdates, 60000);
+
+// setInterval() returns a value that we can use to stop the repeated
+// invocations by calling clearInterval(). (Similarly, setTimeout()
+// returns a value that you can pass to clearTimeout())
+function stopCheckingForUpdates() {
+    clearInterval(updateIntervalId);
+}
+
+// Ask the web browser to return an object representing the HTML
+// <button> element that matches this CSS selector
+let okay = document.querySelector('#confirmUpdateDialog button.okay');
+
+// Now register a callback function to be invoked when the user
+// clicks on that button.
+okay.addEventListener('click', applyUpdate);
 
 
-    
+function getCurrentVersionNumber(versionCallback) { // Note callback argument
+    // Make a scripted HTTP request to a backend version API
+    let request = new XMLHttpRequest();
+    request.open("GET", "http://www.example.com/api/version");
+    request.send();
+
+    // Register a callback that will be invoked when the response arrives
+    request.onload = function() {
+        if (request.status === 200) {
+            // If HTTP status is good, get version number and call callback.
+            let currentVersion = parseFloat(request.responseText);
+            versionCallback(null, currentVersion);
+        } else {
+            // Otherwise report an error to the callback
+            versionCallback(response.statusText, null);
+        }
+    };
+    // Register another callback that will be invoked for network errors
+    request.onerror = request.ontimeout = function(e) {
+        versionCallback(e.type, null);
+    };
+}
+
+// Promise-based asynchronous computations pass the exception (typically as an Error object of some kind, though this is not required) to the second function passed to then().
+
+getJSON("/api/user/profile").then(displayUserProfile, handleProfileError);
+
+getJSON("/api/user/profile").then(displayUserProfile).catch(handleProfileError);
+
+
+fetch("/api/user/profile")
+    .then(response => {
+        return response.json();
+    })
+    .then(profile => {
+        displayUserProfile(profile);
+    });
+
+    fetch("/api/user/profile")    // Start the HTTP request
+    .then(response => {       // Call this when status and headers are ready
+        if (!response.ok) {   // If we got a 404 Not Found or similar error
+            return null;      // Maybe user is logged out; return null profile
+        }
+
+        // Now check the headers to ensure that the server sent us JSON.
+        // If not, our server is broken, and this is a serious error!
+        let type = response.headers.get("content-type");
+        if (type !== "application/json") {
+            throw new TypeError(`Expected JSON, got ${type}`);
+        }
+
+        // If we get here, then we got a 2xx status and a JSON content-type
+        // so we can confidently return a Promise for the response
+        // body as a JSON object.
+        return response.json();
+    })
+    .then(profile => {        // Called with the parsed response body or null
+        if (profile) {
+            displayUserProfile(profile);
+        }
+        else { // If we got a 404 error above and returned null we end up here
+            displayLoggedOutProfilePage();
+        }
+    })
+    .catch(e => {
+        if (e instanceof NetworkError) {
+            // fetch() can fail this way if the internet connection is down
+            displayErrorMessage("Check your internet connection.");
+        }
+        else if (e instanceof TypeError) {
+            // This happens if we throw TypeError above
+            displayErrorMessage("Something is wrong with our server!");
+        }
+        else {
+            // This must be some kind of unanticipated error
+            console.error(e);
+        }
+    });
+
+   // Now suppose that transient network load issues are causing this to fail about 1% of the time. A simple solution might be to retry the query with a .catch() call:
+
+    queryDatabase()
+    .catch(e => wait(500).then(queryDatabase))  // On failure, wait and retry
+    .then(displayTable)
+    .catch(displayDatabaseError);
+
+
+    // Sometimes, though, we want to execute a number of asynchronous operations in parallel. The function Promise.all() can do this. Promise.all() takes an array of Promise objects as its input and returns a Promise. The returned Promise will be rejected if any of the input Promises are rejected. Otherwise, it will be fulfilled with an array of the fulfillment values of each of the input Promises.
+    p = Promise.all([Promise.resolve(undefined),Promise.resolve("sid")])
+    console.log(p)
+
+
+                        //     Promise {<pending>}
+                        // __proto__: Promise
+                        // [[PromiseStatus]]: "fulfilled"
+                        // [[PromiseValue]]: Array(2)
+                        // 0: undefined
+                        // 1: "sid"
+                        // length: 2
+                        // __proto__: Array(0)
+
+
+
+    // We start with an array of URLs
+const urls = [ /* zero or more URLs here */ ];
+// And convert it to an array of Promise objects
+promises = urls.map(url => fetch(url).then(r => r.text()));
+// Now get a Promise to run all those Promises in parallel
+Promise.all(promises)
+    .then(bodies => { /* do something with the array of strings */ })
+    .catch(e => console.error(e));
+
+//     Promise.all() is slightly more flexible than described before. The input array can contain both Promise objects and non-Promise values. If an element of the array is not a Promise, it is treated as if it is the value of an already fulfilled Promise and is simply copied unchanged into the output array.
+
+// The Promise returned by Promise.all() rejects when any of the input Promises is rejected. This happens immediately upon the first rejection and can happen while other input Promises are still pending. In ES2020, Promise.allSettled() takes an array of input Promises and returns a Promise, just like Promise.all() does. But Promise.allSettled() never rejects the returned Promise, and it does not fulfill that Promise until all of the input Promises have settled. The Promise resolves to an array of objects, with one object for each input Promise. Each of these returned objects has a status property set to “fulfilled” or “rejected.” If the status is “fulfilled”, then the object will also have a value property that gives the fulfillment value. And if the status is “rejected”, then the object will also have a reason property that gives the error or rejection value of the corresponding Promise:
+
+// Occasionally, you may want to run a number of Promises at once but may only care about the value of the first one to fulfill. In that case, you can use Promise.race() instead of Promise.all(). It returns a Promise that is fulfilled or rejected when the first of the Promises in the input array is fulfilled or rejected. (Or, if there are any non-Promise values in the input array, it simply returns the first of those.)
+
+// In that case, you use the Promise() constructor to create a new Promise object that you have complete control over. Here’s how it works: you invoke the Promise() constructor and pass a function as its only argument. The function you pass should be written to expect two parameters, which, by convention, should be named resolve and reject. The constructor synchronously calls your function with function arguments for the resolve and reject parameters. After calling your function, the Promise() constructor returns the newly created Promise. That returned Promise is under the control of the function you passed to the constructor. That function should perform some asynchronous operation and then call the resolve function to resolve or fulfill the returned Promise or call the reject function to reject the returned Promise. Your function does not have to be asynchronous: it can call resolve or reject synchronously, but the Promise will still be resolved, fulfilled, or rejected asynchronously if you do this.
+
+
+function wait(duration) {
+    // Create and return a new Promise
+    return new Promise((resolve, reject) => { // These control the Promise
+        // If the argument is invalid, reject the Promise
+        if (duration < 0) {
+            reject(new Error("Time travel not yet implemented"));
+        }
+        // Otherwise, wait asynchronously and then resolve the Promise.
+        // setTimeout will invoke resolve() with no arguments, which means
+        // that the Promise will fulfill with the undefined value.
+        setTimeout(resolve, duration);
+    });
+}
+
+
+const http = require("http");
+
+function getJSON(url) {
+    // Create and return a new Promise
+    return new Promise((resolve, reject) => {
+        // Start an HTTP GET request for the specified URL
+        request = http.get(url, response => { // called when response starts
+            // Reject the Promise if the HTTP status is wrong
+            if (response.statusCode !== 200) {
+                reject(new Error(`HTTP status ${response.statusCode}`));
+                response.resume();  // so we don't leak memory
+            }
+            // And reject if the response headers are wrong
+            else if (response.headers["content-type"] !== "application/json") {
+                reject(new Error("Invalid content-type"));
+                response.resume();  // don't leak memory
+            }
+            else {
+                // Otherwise, register events to read the body of the response
+                let body = "";
+                response.setEncoding("utf-8");
+                response.on("data", chunk => { body += chunk; });
+                response.on("end", () => {
+                    // When the response body is complete, try to parse it
+                    try {
+                        let parsed = JSON.parse(body);
+                        // If it parsed successfully, fulfill the Promise
+                        resolve(parsed);
+                    } catch(e) {
+                        // If parsing failed, reject the Promise
+                        reject(e);
+                    }
+                });
+            }
+        });
+        // We also reject the Promise if the request fails before we
+        // even get a response (such as when the network is down)
+        request.on("error", error => {
+            reject(error);
+        });
+    });
+}
+
+// Promise.all() makes it easy to run an arbitrary number of Promises in parallel. And Promise chains make it easy to express a sequence of a fixed number of Promises. Running an arbitrary number of Promises in sequence is trickier, however. Suppose, for example, that you have an array of URLs to fetch, but that to avoid overloading your network, you want to fetch them one at a time. If the array is of arbitrary length and unknown content, you can’t write out a Promise chain in advance, so you need to build one dynamically, with code like this:
+
+
+
+function fetchSequentially(urls) {
+    // We'll store the URL bodies here as we fetch them
+    const bodies = [];
+
+    // Here's a Promise-returning function that fetches one body
+    function fetchOne(url) {
+        return fetch(url)
+            .then(response => response.text())
+            .then(body => {
+                // We save the body to the array, and we're purposely
+                // omitting a return value here (returning undefined)
+                bodies.push(body);
+            });
+    }
+
+    // Start with a Promise that will fulfill right away (with value undefined)
+    let p = Promise.resolve(undefined);
+
+    // Now loop through the desired URLs, building a Promise chain
+    // of arbitrary length, fetching one URL at each stage of the chain
+    for(url of urls) {
+        p = p.then(() => fetchOne(url));
+    }
+
+    // When the last Promise in that chain is fulfilled, then the
+    // bodies array is ready. So let's return a Promise for that
+    // bodies array. Note that we don't include any error handlers:
+    // we want to allow errors to propagate to the caller.
+    return p.then(() => bodies);
+}
+fetchSequentially(urls)
+    .then(bodies => { /* do something with the array of strings */ })
+    .catch(e => console.error(e));
+
+
+// The value of a fulfilled Promise is like the return value of a synchronous function. And the value of a rejected Promise is like a value thrown by a synchronous function.
+
+// We don’t usually use await with a variable that holds a Promise; instead, we use it before the invocation of a function that returns a Promise:It is critical to understand right away that the await keyword does not cause your program to block and literally do nothing until the specified Promise settles. The code remains asynchronous, and the await simply disguises this fact. This means that any code that uses await is itself asynchronous.
+let response = await fetch("/api/user/profile");
+let profile = await response.json();
+// you can only use the await keyword within functions that have been declared with the async keyword.
+async function getHighScore() {
+    let response = await fetch("/api/user/profile");
+    let profile = await response.json();
+    return profile.highScore;
+}
+
+// The getHighScore() function is declared async, so it returns a Promise. And because it returns a Promise, we can use the await keyword with it:
+displayHighScore(await getHighScore());
+
+// But remember, that line of code will only work if it is inside another async function! You can nest await expressions within async functions as deeply as you want. But if you’re at the top level2 or are inside a function that is not async for some reason, then you can’t use await and have to deal with a returned Promise in the regular way:
+
+
+getHighScore().then(displayHighScore).catch(console.error);
+
+let [value1, value2] = await Promise.all([getJSON(url1), getJSON(url2)]);
+
+
+// The for/await Loop
+
+const fs = require("fs");
+
+async function parseFile(filename) {
+    let stream = fs.createReadStream(filename, { encoding: "utf-8"});
+    for await (let chunk of stream) {
+        parseChunk(chunk); // Assume parseChunk() is defined elsewhere
+    }
+}
+
+========================================================META=PROGRAMMING=====================================================
+
+// The properties of a JavaScript object have names and values, of course, but each property also has three associated attributes that specify how that property behaves and what you can do with it:
+
+//     The writable attribute specifies whether or not the value of a property can change.
+
+//     The enumerable attribute specifies whether the property is enumerated by the for/in loop and the Object.keys() method.
+
+//     The configurable attribute specifies whether a property can be deleted and also whether the property’s attributes can be changed.
+let o = {
+    // An ordinary data property
+    dataProp: value,
+
+    // An accessor property defined as a pair of functions.
+    get accessorProp() { return this.dataProp; },
+    set accessorProp(value) { this.dataProp = value; }
+};
+
+
+
+-----------------------------------------------------WEB DEVELOPMENT--------------------------------------------------------------
+<script defer src="deferred.js"></script>
+<script async src="async.js"></script>
+
+// The <script> tag can have defer and async attributes, which cause scripts to be executed differently. These are boolean attributes—they don’t have a value; 
+
+// Asynchronously load and execute a script from a specified URL
+// Returns a Promise that resolves when the script has loaded.
+function importScript(url) {
+    return new Promise((resolve, reject) => {
+        let s = document.createElement("script"); // Create a <script> element
+        s.onload = () => { resolve(); };          // Resolve promise when loaded
+        s.onerror = (e) => { reject(e); };        // Reject on failure
+        s.src = url;                              // Set the script URL
+        document.head.append(s);                  // Add <script> to document
+    });
+}
+
+// The global navigator property provides access to information about the web browser, the OS it’s running on top of, and the capabilities of each. 
+// Similarly, the global screen property provides access to the user’s display size via the screen.width and screen.height properties.
+// There are two basic ways to register event handlers. The first, from the early days of the web, is to set a property on the object or document element that is the event target. The second (newer and more general) technique is to pass the handler to the addEventListener() method of the object or element.
+
+// Set the onload property of the Window object to a function.
+// The function is the event handler: it is invoked when the document loads.
+window.onload = function() {
+    // Look up a <form> element
+    let form = document.querySelector("form#shipping");
+    // Register an event handler function on the form that will be invoked
+    // before the form is submitted. Assume isFormValid() is defined elsewhere.
+    form.onsubmit = function(event) { // When the user submits the form
+        if (!isFormValid(this)) {     // check whether form inputs are valid
+            event.preventDefault();   // and if not, prevent form submission.
+        }
+    };
+};
+
+
+// When defining an event handler as an HTML attribute, the attribute value should be a string of JavaScript code. That code should be the body of the event handler function, not a complete function declaration. That is, your HTML event handler code should not be surrounded by curly braces and prefixed with the function keyword. For example:
+
+
+<button onclick="console.log('Thank you');">Please Click</button>
+
+// addEventListener() takes three arguments. The first is the event type for which the handler is being registered. The event type (or name) is a string that does not include the “on” prefix used when setting event handler properties. The second argument to addEventListener() is the function that should be invoked when the specified type of event occurs. 
+
+
+// addEventListener() is paired with a removeEventListener() method that expects the same two arguments (plus an optional third) but removes an event handler function from an object rather than adding it.
+
+document.removeEventListener("mousemove", handleMouseMove);
+document.removeEventListener("mouseup", handleMouseUp);
+
+// The optional third argument to addEventListener() is a boolean value or object. If you pass true, then your handler function is registered as a capturing event handler and is invoked at a different phase of event dispatch. We’ll cover event capturing in §15.2.4. If you pass a third argument of true when you register an event listener, then you must also pass true as the third argument to removeEventListener() if you want to remove the handler.
+
+// Registering a capturing event handler is only one of the three options that addEventListener() supports, and instead of passing a single boolean value, you can also pass an object that explicitly specifies the options you want:
+
+document.addEventListener("click", handleClick, {
+    capture: true,
+    once: true,
+    passive: true
+});
+// If the Options object has a capture property set to true, then the event handler will be registered as a capturing handler. If that property is false or is omitted, then the handler will be non-capturing.
+
+// If the Options object has a once property set to true, then the event listener will be automatically removed after it is triggered once. If this property is false or is omitted, then the handler is never automatically removed.
+
+// If the Options object has a passive property set to true, it indicates that the event handler will never call preventDefault() to cancel the default action (see §15.2.5).
+// if a JavaScript object has an addEventListener() method, then it is an “event target,” and this means it also has a dispatchEvent() method. You can create your own event object with the CustomEvent() constructor and pass it to dispatchEvent(). The first argument to CustomEvent() is a string that specifies the type of your event, and the second argument is an object that specifies the properties of the event object.
+
+// Dispatch a custom event so the UI knows we are busy
+document.dispatchEvent(new CustomEvent("busy", { detail: true }));
+
+// Perform a network operation
+fetch(url)
+  .then(handleNetworkResponse)
+  .catch(handleNetworkError)
+  .finally(() => {
+      // After the network request has succeeded or failed, dispatch
+      // another event to let the UI know that we are no longer busy.
+      document.dispatchEvent(new CustomEvent("busy", { detail: false }));
+  });
+
+// Elsewhere, in your program you can register a handler for "busy" events
+// and use it to show or hide the spinner to let the user know.
+document.addEventListener("busy", (e) => {
+    if (e.detail) {
+        showSpinner();
+    } else {
+        hideSpinner();
+    }
+});
+
+// The DOM methods querySelector() and querySelectorAll() allow us to find the element or elements within a document that match a specified CSS selector.
+
+// The querySelector() method takes a CSS selector string as its argument and returns the first matching element in the document that it finds, or returns null if none match:
+// Find the document element for the HTML tag with attribute id="spinner"
+let spinner = document.querySelector("#spinner");
+
+// querySelectorAll() is similar, but it returns all matching elements in the document rather than just returning the first:
+// Find all Element objects for <h1>, <h2>, and <h3> tags
+let titles = document.querySelectorAll("h1, h2, h3");
+
+// The return value of querySelectorAll() is not an array of Element objects. Instead, it is an array-like object known as a NodeList. NodeList objects have a length property and can be indexed like arrays, so you can loop over them with a traditional for loop. NodeLists are also iterable, so you can use them with for/of loops as well. If you want to convert a NodeList into a true array, simply pass it to Array.from().
+
+
+// Look up an element by id. The argument is just the id, without
+// the CSS selector prefix #. Similar to document.querySelector("#sect1")
+let sect1 = document.getElementById("sect1");
+
+// Look up all elements (such as form checkboxes) that have a name="color"
+// attribute. Similar to document.querySelectorAll('*[name="color"]');
+let colors = document.getElementsByName("color");
+
+// Look up all <h1> elements in the document.
+// Similar to document.querySelectorAll("h1")
+let headings = document.getElementsByTagName("h1");
+
+// getElementsByTagName() is also defined on elements.
+// Get all <h2> elements within the sect1 element.
+let subheads = sect1.getElementsByTagName("h2");
+
+// Look up all elements that have class "tooltip."
+// Similar to document.querySelectorAll(".tooltip")
+let tooltips = document.getElementsByClassName("tooltip");
+
+// Look up all descendants of sect1 that have class "sidebar"
+// Similar to sect1.querySelectorAll(".sidebar")
+let sidebars = sect1.getElementsByClassName("sidebar");
+
+
+// there is a traversal API that allows us to treat a document as a tree of Element objects, ignoring Text nodes that are also part of the document.
+
+// parentNode
+// This property of an element refers to the parent of the element, which will be another Element or a Document object.
+
+// children
+// This NodeList contains the Element children of an element, but excludes non-Element children like Text nodes (and Comment nodes).
+
+// childElementCount
+// The number of Element children. Returns the same value as children.length.
+
+// firstElementChild, lastElementChild
+// These properties refer to the first and last Element children of an Element. They are null if the Element has no Element children.
+
+// nextElementSibling, previousElementSibling
+// These properties refer to the sibling Elements immediately before or immediately after an Element, or null if there is no such sibling.
+
+// Using these Element properties, the second child Element of the first child Element of the Document can be referred to with either of these expressions:
+
+document.children[0].children[1]
+document.firstElementChild.firstElementChild.nextElementSibling
+
+// demonstrate how you can use these properties to recursively do a depth-first traversal of a document invoking a specified function for every element in the document:
+// Recursively traverse the Document or Element e, invoking the function
+// f on e and on each of its descendants
+function traverse(e, f) {
+    f(e);                             // Invoke f() on e
+    for(let child of e.children) {    // Iterate over the children
+        traverse(child, f);           // And recurse on each one
+    }
+}
+
+function traverse2(e, f) {
+    f(e);                             // Invoke f() on e
+    let child = e.firstElementChild;  // Iterate the children linked-list style
+    while(child !== null) {
+        traverse2(child, f);          // And recurse
+        child = child.nextElementSibling;
+    }
+}
+
+// If you want to traverse a document or some portion of a document and do not want to ignore the Text nodes, you can use a different set of properties defined on all Node objects. This will allow you to see Elements, Text nodes, and even Comment nodes (which represent HTML comments in the document).
+
+// All Node objects define the following properties:
+
+// parentNode
+// The node that is the parent of this one, or null for nodes like the Document object that have no parent.
+
+// childNodes
+// A read-only NodeList that that contains all children (not just Element children) of the node.
+
+// firstChild, lastChild
+// The first and last child nodes of a node, or null if the node has no children.
+
+// nextSibling, previousSibling
+// The next and previous sibling nodes of a node. These properties connect nodes in a doubly linked list.
+
+// nodeType
+// A number that specifies what kind of node this is. Document nodes have value 9. Element nodes have value 1. Text nodes have value 3. Comment nodes have value 8.
+
+// nodeValue
+// The textual content of a Text or Comment node.
+
+// nodeName
+// The HTML tag name of an Element, converted to uppercase.
+
+
+HTML ATTRIBUTES AS ELEMENT PROPERTIES
+let image = document.querySelector("#main_image");
+let url = image.src;       // The src attribute is the URL of the image
+image.id === "main_image"  // => true; we looked up the image by id
+let f = document.querySelector("form");      // First <form> in the document
+f.action = "https://www.example.com/submit"; // Set the URL to submit it to.
+f.method = "POST";                           // Set the HTTP request type.
+// Note that this property-based API for getting and setting attribute values does not define any way to remove an attribute from an element. In particular, the delete operator cannot be used for this purpose. If you need to delete an attribute, use the removeAttribute() method.
+
+// Element objects define a classList property that allows you to treat the class attribute as a list. The value of the classList property is an iterable Array-like object. Although the name of the property is classList, it behaves more like a set of classes, and defines add(), remove(), contains(), and toggle() methods:
+
+// When we want to let the user know that we are busy, we display
+// a spinner. To do this we have to remove the "hidden" class and add the
+// "animated" class (assuming the stylesheets are configured correctly).
+let spinner = document.querySelector("#spinner");
+spinner.classList.remove("hidden");
+spinner.classList.add("animated");
+
+// In HTML, any attribute whose name is lowercase and begins with the prefix “data-” is considered valid, and you can use them for any purpose. These “dataset attributes” will not affect the presentation of the elements on which they appear, and they define a standard way to attach additional data without compromising document validity.
+
+// In HTML, any attribute whose name is lowercase and begins with the prefix “data-” is considered valid, and you can use them for any purpose. These “dataset attributes” will not affect the presentation of the elements on which they appear, and they define a standard way to attach additional data without compromising document validity.
+
+// In the DOM, Element objects have a dataset property that refers to an object that has properties that correspond to the data- attributes with their prefix removed. Thus, dataset.x would hold the value of the data-x attribute. Hyphenated attributes map to camelCase property names: the attribute data-section-number becomes the property dataset.sectionNumber.
+
+<h2 id="title" data-section-number="16.1">Attributes</h2>
+let number = document.querySelector("#title").dataset.sectionNumber;
+
+document.body.innerHTML = "<h1>Oops</h1>";
+let para = document.querySelector("p"); // First <p> in the document
+let text = para.textContent;            // Get the text of the paragraph
+para.textContent = "Hello World!";      // Alter the text of the paragraph
+
+let paragraph = document.createElement("p"); // Create an empty <p> element
+let emphasis = document.createElement("em"); // Create an empty <em> element
+emphasis.append("World");                    // Add text to the <em> element
+paragraph.append("Hello ", emphasis, "!");   // Add text and <em> to <p>
+paragraph.prepend("¡");                      // Add more text at start of <p>
+paragraph.innerHTML                          // => "¡Hello <em>World</em>!"
+
+// append() and prepend() take any number of arguments, which can be Node objects or strings.
+
+// call before() to insert the new content before that sibling or after() to insert it after that sibling. 
+
+// You can remove an Element or Text node from the document by calling its remove() method, or you can replace it by calling replaceWith() instead. remove() takes no arguments, and replaceWith() takes any number of strings and elements just like before() and after() do:
+
+// Remove the greetings element from the document and replace it with
+// the paragraph element (moving the paragraph from its current location
+// if it is already inserted into the document).
+greetings.replaceWith(paragraph);
+
+// And now remove the paragraph.
+paragraph.remove();
+
+/**
+ * TOC.js: create a table of contents for a document.
+ *
+ * This script runs when the DOMContentLoaded event is fired and
+ * automatically generates a table of contents for the document.
+ * It does not define any global symbols so it should not conflict
+ * with other scripts.
+ *
+ * When this script runs, it first looks for a document element with
+ * an id of "TOC". If there is no such element it creates one at the
+ * start of the document. Next, the function finds all <h2> through
+ * <h6> tags, treats them as section titles, and creates a table of
+ * contents within the TOC element. The function adds section numbers
+ * to each section heading and wraps the headings in named anchors so
+ * that the TOC can link to them. The generated anchors have names
+ * that begin with "TOC", so you should avoid this prefix in your own
+ * HTML.
+ *
+ * The entries in the generated TOC can be styled with CSS. All
+ * entries have a class "TOCEntry". Entries also have a class that
+ * corresponds to the level of the section heading. <h1> tags generate
+ * entries of class "TOCLevel1", <h2> tags generate entries of class
+ * "TOCLevel2", and so on. Section numbers inserted into headings have
+ * class "TOCSectNum".
+ *
+ * You might use this script with a stylesheet like this:
+ *
+ *   #TOC { border: solid black 1px; margin: 10px; padding: 10px; }
+ *   .TOCEntry { margin: 5px 0px; }
+ *   .TOCEntry a { text-decoration: none; }
+ *   .TOCLevel1 { font-size: 16pt; font-weight: bold; }
+ *   .TOCLevel2 { font-size: 14pt; margin-left: .25in; }
+ *   .TOCLevel3 { font-size: 12pt; margin-left: .5in; }
+ *   .TOCSectNum:after { content: ": "; }
+ *
+ * To hide the section numbers, use this:
+ *
+ *   .TOCSectNum { display: none }
+ **/
+document.addEventListener("DOMContentLoaded", () => {
+    // Find the TOC container element.
+    // If there isn't one, create one at the start of the document.
+    let toc = document.querySelector("#TOC");
+    if (!toc) {
+        toc = document.createElement("div");
+        toc.id = "TOC";
+        document.body.prepend(toc);
+    }
+
+    // Find all section heading elements. We're assuming here that the
+    // document title uses <h1> and that sections within the document are
+    // marked with <h2> through <h6>.
+    let headings = document.querySelectorAll("h2,h3,h4,h5,h6");
+
+    // Initialize an array that keeps track of section numbers.
+    let sectionNumbers = [0,0,0,0,0];
+
+    // Now loop through the section header elements we found.
+    for(let heading of headings) {
+        // Skip the heading if it is inside the TOC container.
+        if (heading.parentNode === toc) {
+            continue;
+        }
+
+        // Figure out what level heading it is.
+        // Subtract 1 because <h2> is a level-1 heading.
+        let level = parseInt(heading.tagName.charAt(1)) - 1;
+
+        // Increment the section number for this heading level
+        // and reset all lower heading level numbers to zero.
+        sectionNumbers[level-1]++;
+        for(let i = level; i < sectionNumbers.length; i++) {
+            sectionNumbers[i] = 0;
+        }
+
+        // Now combine section numbers for all heading levels
+        // to produce a section number like 2.3.1.
+        let sectionNumber = sectionNumbers.slice(0, level).join(".");
+
+        // Add the section number to the section header title.
+        // We place the number in a <span> to make it styleable.
+        let span = document.createElement("span");
+        span.className = "TOCSectNum";
+        span.textContent = sectionNumber;
+        heading.prepend(span);
+
+        // Wrap the heading in a named anchor so we can link to it.
+        let anchor = document.createElement("a");
+        let fragmentName = `TOC${sectionNumber}`;
+        anchor.name = fragmentName;
+        heading.before(anchor);    // Insert anchor before heading
+        anchor.append(heading);    // and move heading inside anchor
+
+        // Now create a link to this section.
+        let link = document.createElement("a");
+        link.href = `#${fragmentName}`;     // Link destination
+
+        // Copy the heading text into the link. This is a safe use of
+        // innerHTML because we are not inserting any untrusted strings.
+        link.innerHTML = heading.innerHTML;
+
+        // Place the link in a div that is styleable based on the level.
+        let entry = document.createElement("div");
+        entry.classList.add("TOCEntry", `TOCLevel${level}`);
+        entry.append(link);
+
+        // And add the div to the TOC container.
+        toc.append(entry);
+    }
+});
+
+
+// Assume that this "tooltip" element has class="hidden" in the HTML file.
+// We can make it visible like this:
+document.querySelector("#tooltip").classList.remove("hidden");
+
+// And we can hide it again like this:
+document.querySelector("#tooltip").classList.add("hidden");
+
+function displayAt(tooltip, x, y) {
+    tooltip.style.display = "block";
+    tooltip.style.position = "absolute";
+    tooltip.style.left = `${x}px`;
+    tooltip.style.top = `${y}px`;
+}
+
+display: block; font-family: sans-serif; background-color: #ffffff;
+e.style.display = "block";
+e.style.fontFamily = "sans-serif";
+e.style.backgroundColor = "#ffffff";
+
+// Sometimes, you may find it easier to set or query the inline style of an element as a single string value rather than as a CSSStyleDeclaration object. To do that, you can use the Element getAttribute() and setAttribute() methods, or you can use the cssText property of the CSSStyleDeclaration object:
+
+// Copy the inline styles of element e to element f:
+f.setAttribute("style", e.getAttribute("style"));
+
+// Or do it like this:
+f.style.cssText = e.style.cssText;
+
+window.location = "http://www.oreilly.com"; // Go buy some books!
+
+// The History object has back() and forward() methods that behave like the browser’s Back and Forward buttons do:
+
+// A third method, go(), takes an integer argument and can skip any number of pages forward (for positive arguments) or backward (for negative arguments) in the history list:
+history.go(-2);   // Go back 2, like clicking the Back button twice
+history.go(0);    // Another way to reload the current page
+
+fetch("/api/users/current")            // Make an HTTP (or HTTPS) GET request
+    .then(response => response.json()) // Parse its body as a JSON object
+    .then(currentUser => {             // Then process that parsed object
+        displayUserInfo(currentUser);
+    });
+
+
+
+
+
+
+
+
+
+
 
 
 
