@@ -1732,13 +1732,131 @@ fetch("/api/users/current")            // Make an HTTP (or HTTPS) GET request
     });
 
 
+    async function isServiceReady() {
+        let response = await fetch("/api/service/status");
+        let body = await response.text();
+        return body === "ready";
+    }
+
+    fetch("/api/users/current")   // Make an HTTP (or HTTPS) GET request.
+    .then(response => {       // When we get a response, first check it
+        if (response.ok &&    // for a success code and the expected type.
+            response.headers.get("Content-Type") === "application/json") {
+            return response.json(); // Return a Promise for the body.
+        } else {
+            throw new Error(        // Or throw an error.
+                `Unexpected response status ${response.status} or content type`
+            );
+        }
+    })
+    .then(currentUser => {    // When the response.json() Promise resolves
+        displayUserInfo(currentUser); // do something with the parsed body.
+    })
+    .catch(error => {         // Or if anything went wrong, just log the error.
+        // If the user's browser is offline, fetch() itself will reject.
+        // If the server returns a bad response then we throw an error above.
+        console.log("Error while fetching current user:", error);
+    });
+    // The headers property of a Response object is a Headers object. Use its has() method to test for the presence of a header, or use its get() method to get the value of a header.
+
+    fetch(url).then(response => {
+        for(let [name,value] of response.headers) {
+            console.log(`${name}: ${value}`);
+        }
+    });
+
+    SETTING REQUEST PARAMETERS
+
+    async function search(term) {
+        let url = new URL("/api/search");
+        url.searchParams.set("q", term);
+        let response = await fetch(url);
+        if (!response.ok) throw new Error(response.statusText);
+        let resultsArray = await response.json();
+        return resultsArray;
+    }
+
+    SETTING REQUEST HEADERS
+
+    let authHeaders = new Headers();
+// Don't use Basic auth unless it is over an HTTPS connection.
+authHeaders.set("Authorization",
+                `Basic ${btoa(`${username}:${password}`)}`);
+fetch("/api/users/", { headers: authHeaders })
+    .then(response => response.json())             // Error handling omitted...
+    .then(usersList => displayAllUsers(usersList));
+
+
+    function setTheme(name) {
+        // Create a new <link rel="stylesheet"> element to load the named stylesheet
+        let link = document.createElement("link");
+        link.id = "theme";
+        link.rel = "stylesheet";
+        link.href = `themes/${name}.css`;
+    
+        // Look for an existing link with id "theme"
+        let currentTheme = document.querySelector("#theme");
+        if (currentTheme) {
+            // If there is an existing theme, replace it with the new one.
+            currentTheme.replaceWith(link);
+        } else {
+            // Otherwise, just insert the link to the theme stylesheet.
+            document.head.append(link);
+        }
+    }
+
+
+    If you assign a string to window.location or to document.location, that string is interpreted as a URL and the browser loads it, replacing the current document with a new one:
+    window.location = "http://www.oreilly.com"; // Go buy some books!
+    document.location = "page2.html";           // Load the next page
+
+    let authHeaders = new Headers();
+// Don't use Basic auth unless it is over an HTTPS connection.
+authHeaders.set("Authorization",
+                `Basic ${btoa(`${username}:${password}`)}`);
+fetch("/api/users/", { headers: authHeaders })
+    .then(response => response.json())             // Error handling omitted...
+    .then(usersList => displayAllUsers(usersList));
+
+    let request = new Request(url, { headers });
+fetch(request).then(response => ...);
 
 
 
+let name = localStorage.username;         // Query a stored value.
+if (!name) {
+    name = prompt("What is your name?");  // Ask the user a question.
+    localStorage.username = name;         // Store the user's response.
+}
+
+You can use the delete operator to remove properties from localStorage and sessionStorage, and you can use a for/in loop or Object.keys() to enumerate the properties of a Storage object. If you want to remove all properties of a storage object, call the clear() method:
+
+localStorage.clear();
+
+Storage objects also define getItem(), setItem(), and deleteItem() methods, which you can use instead of direct property access and the delete operator if you want to.
+// If you store a number, it is automatically converted to a string.
+// Don't forget to parse it when retrieving it from storage.
+localStorage.x = 10;
+let x = parseInt(localStorage.x);
+
+// Convert a Date to a string when setting, and parse it when getting
+localStorage.lastRead = (new Date()).toUTCString();
+let lastRead = new Date(Date.parse(localStorage.lastRead));
+
+// JSON makes a convenient encoding for any primitive or data structure
+localStorage.data = JSON.stringify(data);  // Encode and store
+let data = JSON.parse(localStorage.data);  // Retrieve and decode.
 
 
+// localStorage is scoped to the document origin. As explained in “The same-origin policy”, the origin of a document is defined by its protocol, hostname, and port. All documents with the same origin share the same localStorage data (regardless of the origin of the scripts that actually access localStorage). They can read each other’s data, and they can overwrite each other’s data. But documents with different origins can never read or overwrite each other’s data (even if they’re both running a script from the same third-party server).
 
+// Data stored through sessionStorage has a different lifetime than data stored through localStorage: it has the same lifetime as the top-level window or browser tab in which the script that stored it is running. When the window or tab is permanently closed, any data stored through sessionStorage is deleted. (Note, however, that modern browsers have the ability to reopen recently closed tabs and restore the last browsing session, so the lifetime of these tabs and their associated sessionStorage may be longer than it seems.)
 
+// Like localStorage, sessionStorage is scoped to the document origin so that documents with different origins will never share sessionStorage. But sessionStorage is also scoped on a per-window basis. If a user has two browser tabs displaying documents from the same origin, those two tabs have separate sessionStorage data: the scripts running in one tab cannot read or overwrite the data written by scripts in the other tab, even if both tabs are visiting exactly the same page and are running exactly the same scripts.
+
+// Whenever the data stored in localStorage changes, the browser triggers a “storage” event on any other Window objects to which that data is visible (but not on the window that made the change). If a browser has two tabs open to pages with the same origin, and one of those pages stores a value in localStorage, the other tab will receive a “storage” event.
+
+window.addEventListener() with event type “storage”.
 
 
 

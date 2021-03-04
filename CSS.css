@@ -1,0 +1,255 @@
+Typically, the HTML hierarchy works out so that inlines descend from blocks, but not the other way around.
+
+CSS, on the other hand, has no such restrictions. You can leave the markup as it is but change the display roles of the two elements like this:
+p {display: inline;}
+em {display: block;}
+Imports must be placed at the beginning of the stylesheet that contains them
+<html>
+<head>
+<title>Eric's World of Waffles</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="sheet1.css" media="all">
+<style type="text/css">
+/* These are my styles! Yay! */
+@import url(sheet2.css);
+</style>
+</head>
+<body>
+<h1>Waffles!</h1>
+<p style="color: gray;">The most wonderful of all breakfast foods is
+the waffle—a ridged and cratered slab of home-cooked, fluffy goodness
+that makes every child's heart soar with joy. And they're so easy to make!
+Just a simple waffle-maker and some batter, and you're ready for a morning
+of aromatic ecstasy!
+</p>
+</body>
+</html>
+
+@import is found inside the style container. It must be placed before the other CSS rules or it won’t work at all.
+<style type="text/css">
+@import url(styles.css); /* @import comes first */
+h1 {color: gray;}
+</style>
+
+<p style="color: gray;">The most wonderful of all breakfast foods is
+the waffle—a ridged and cratered slab of home-cooked, fluffy goodness...
+</p>
+
+Prefix	Vendor
+-epub-
+
+International Digital Publishing Forum ePub format
+
+-moz-
+
+Mozilla-based browsers (e.g., Firefox)
+
+-ms-
+
+Microsoft Internet Explorer
+
+-o-
+
+Opera-based browsers
+
+-webkit-
+
+WebKit-based browsers (e.g., Safari and Chrome)
+
+
+/* This is a CSS1 comment */
+
+/* This is a comment, in which we find
+ another comment, which is WRONG
+   /* Another comment */
+   /*and back to the first comment */
+
+   Media queries can be employed in the following places:
+
+The media attribute of a link element
+
+The media attribute of a style element
+
+The media descriptor portion of an @import declaration
+
+The media descriptor portion of an @media declaration
+
+h1 {color: maroon;}
+@media projection {
+   body {background: yellow;}
+}
+/*In this example, h1 elements will be colored maroon in all media, but the body element will get a yellow background only in a projection medium.*/
+
+
+The most basic form of media queries are media types, which first appeared in CSS2. These are simple labels for different kinds of media:
+
+all
+Use in all presentational media.
+
+print
+Use when printing the document for sighted users and also when displaying a print preview of the document.
+
+screen
+Use when presenting the document in a screen medium like a desktop computer monitor. All web browsers running on such systems are screen-medium user agents.
+
+four examples are all equivalent ways of applying a stylesheet (or a block of rules) in both screen and print media:
+<link type="text/css" href="frobozz.css" media="screen, print">
+<style type="text/css" media="screen, print">...</style>
+@import url(frobozz.css) screen, print;
+@media screen, print {...}
+
+Here are two essentially equivalent ways of applying an external stylesheet when rendering the document on a color printer:
+<link href="print-color.css" type="text/css"
+   media="print and (color)" rel="stylesheet">
+@import url(print-color.css) print and (color);
+
+Each media descriptor is composed of a media type and one or more listed media features, with each media feature descriptor enclosed in parentheses. If no media type is provided, then it is assumed to be all, which makes the following two examples equivalent:
+
+@media all and (min-resolution: 96dpi) {...}
+
+@media (min-resolution: 96dpi) {...}
+
+Multiple feature descriptors can be linked with the and logical keyword. In fact, there are two logical keywords in media queries:
+
+and
+Links together two or more media features in such a way that all of them must be true for the query to be true. For example, (color) and (orientation: landscape) and (min-device-width: 800px) means that all three conditions must be satisfied: if the media environment has color, is in landscape orientation, and the device’s display is at least 800 pixels wide, then the stylesheet is used.
+
+not
+Negates the entire query such that if all of the conditions are true, then the stylesheet is not applied. For example, not (color) and (orientation: landscape) and (min-device-width: 800px) means that if the three conditions are satisfied, the statement is negated. Thus, if the media environment has color, is in landscape orientation, and the device’s display is at least 800 pixels wide, then the stylesheet is not used. In all other cases, it will be used.
+
+
+Note that the not keyword can only be used at the beginning of a media query. It is not legal to write something like (color) and not (min-device-width: 800px). 
+There is no OR keyword for use in media queries. Instead, the commas that separate a list of queries serve the function of an OR—screen, print means “apply if the media is screen or print.”
+
+list of all possible descriptors (current as of late 2017):
+
+width
+
+min-width
+
+max-width
+
+device-width
+
+min-device-width
+
+max-device-width
+
+height
+
+min-height
+
+max-height
+
+device-height
+
+min-device-height
+
+max-device-height
+
+aspect-ratio
+
+min-aspect-ratio
+
+max-aspect-ratio
+
+device-aspect-ratio
+
+min-device-aspect-ratio
+
+max-device-aspect-ratio
+
+color
+
+min-color
+
+max-color
+
+color-index
+
+min-color-index
+
+max-color-index
+
+monochrome
+
+min-monochrome
+
+max-monochrome
+
+resolution
+
+min-resolution
+
+max-resolution
+
+orientation
+
+scan
+
+grid
+
+In addition, two new value types were added:
+
+<ratio>
+
+<resolution>
+
+.box {box-shadow: inset -1px -1px white,
+                  3px 3px 3px rgba(0,0,0,0.2);
+      background-image: url(myimage.png),
+          linear-gradient(180deg, #FFF 0%, #000 100%);
+      transform: translate(100px, 200px);
+}
+a:hover {transition: color, background-color 200ms ease-in 50ms;}
+
+body, table, th, td, h1, h2, h3, h4, p, pre, strong, em, b, i {color: gray;}
+
+p.warning {font-weight: bold;}  selector now matches any p elements that have a class attribute containing the word warning, but no other elements of any kind, classed or otherwise,
+
+
+<p class="urgent warning">When handling plutonium, care must be taken to
+avoid the formation of a critical mass.</p>
+<p>With plutonium, <span class="warning">the possibility of implosion is
+very real, and must be avoided at all costs</span>. This can be accomplished
+by keeping the various masses separate.</p>
+
+The order of the words doesn’t matter; warning urgent would also suffice and would yield precisely the same results no matter how the CSS class attribute is written.
+Now let’s say you want all elements with a class of warning to be boldfaced, those with a class of urgent to be italic, and those elements with both values to have a silver background. This would be written as follows:
+.warning {font-weight: bold;}
+.urgent {font-style: italic;}
+.warning.urgent {background: silver;}
+
+If a multiple class selector contains a name that is not in the space-separated list, then the match will fail. Consider the following rule:
+p.warning.help {background: red;}
+As you would expect, the selector will match only those p elements with a class containing the words warning and help. Therefore, it will not match a p element with just the words warning and urgent in its class attribute. It would, however, match the following:
+<p class="urgent warning help">Help me!</p>
+
+Unlike class selectors, ID selectors can’t be combined with other IDs, since ID attributes do not permit a space-separated list of words.
+
+===================>Attribute Selectors
+
+to select all h1 elements that have a class attribute with any value and make their text silver, write:
+h1[class] {color: silver;}
+let’s say you want to boldface any hyperlink that points to a certain document on the web server. This would look something like:
+a[href="http://www.css-discuss.org/about.html"] {font-weight: bold;}
+
+
+ul ol ul em {color: gray;}
+
+any emphasized text that is part of an unordered list that is part of an ordered list that is itself part of an unordered list (yes, this is correct) will be gray.
+
+
+Read right to left, the selector h1 > strong translates as, “Selects any strong element that is a direct child of an h1 element.”
+
+
+
+
+
+
+
+
+
+
+
+
