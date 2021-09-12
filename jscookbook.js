@@ -35,6 +35,23 @@ if (fullText.includes(searchString, 70)) {
   // hits the second one.
 }
 
+*******************************888
+let fruits = list.split(',');
+// now fruits has these elements: ['cherries', ' oranges', ' apples', ' bananas']
+*********************************
+    
+Alternatively, you can use the String.charAt() method, which works in exactly the same way.
+
+To get a fragment of a string, you use the slice() method. When calling slice(), you must always specify the index where you want to start your string extraction. For example, text.slice(5) starts at index position 5, continues to the end of the string, and copies that section of the text into a new string.
+
+If you don’t want slice() to continue to the end of the string, you can supply an optional second parameter with the index where the string copying should stop:
+
+// Get a string from index position 5 to 10.
+const substring = original.slice(5, 10);
+
+
+**************************************
+    
 
   
   
